@@ -17,7 +17,7 @@ class CommandBuilder implements vshaxeDebug.ICommandBuilder {
         return "step";
 
     public function stepOut():String 
-        return "todo";
+        return "TODO";
 
     public function next():String 
         return "next";
@@ -38,13 +38,13 @@ class CommandBuilder implements vshaxeDebug.ICommandBuilder {
         return 'clear $filePath:${line}';
 
     public function printLocalVariables():String 
-        return "todo";
+        return "TODO";
 
     public function printFunctionArguments():String 
-        return "todo";
+        return "TODO";
 
     public function printGlobalVariables():String 
-        return "todo";
+        return "TODO";
 
     public function printObjectProperties(?objectName:String):String 
         return 'print $objectName.';
