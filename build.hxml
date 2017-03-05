@@ -4,6 +4,14 @@
 -lib hxnodejs
 -js bin/fdb_adapter.js
 
+--next
+-cp vscode_debugadapter_haxe
+-cp src
+-main hxcppAdapter.Adapter
+-lib hxnodejs
+-js bin/hxcpp_adapter.js
+
+
 --next 
 -lib utest
 -main test.TestAll

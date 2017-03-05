@@ -100,6 +100,48 @@
                         "program": "${workspaceRoot}/bin/your.swf"
                     }
                 ]
+            },
+            {
+                "type": "hxcpp",
+                "label": "Haxe (cpp)",
+                "enableBreakpointsFor": {
+                    "languageIds": [
+                        "haxe"
+                    ]
+                },
+                "program": "./bin/hxcpp_adapter.js",
+                "runtime": "node",
+                "configurationAttributes": {
+                    "launch": {
+                        "required": [
+                            "program"
+                        ],
+                        "properties": {
+                            "program": {
+                                "type": "string",
+                                "description": "full path to a binary file.",
+                                "default": "${workspaceRoot}/bin/yourBinary"
+                            },
+                            "request": {
+                                "type": "string",
+                                "description": "launch",
+                                "default": "launch"
+                            },
+                            "receiveAdapterOutput": {
+                                "type": "bool",
+                                "description": "redirect adapter log to debug console",
+                                "default": false
+                            }
+                        }
+                    }
+                },
+                "initialConfigurations": [{
+                    "name": "Cpp",
+                    "type": "hxcpp",
+                    "request": "launch",
+                    "program": "${workspaceRoot}/bin/yourBinary"
+                    }
+                ]
             }
         ]
     }

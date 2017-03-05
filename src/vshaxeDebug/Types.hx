@@ -1,6 +1,7 @@
 package vshaxeDebug;
 
 import protocol.debug.Types;
+import haxe.ds.Option;
 
 typedef VariableItem = {
     var name:String;
@@ -10,8 +11,7 @@ typedef VariableItem = {
 
 typedef BreakpointInfo = {
     var id:Int;
-    var fileName:String;
-    var line:Int;
+    var lineInfo:Option<Int>;
 }
 
 typedef SourceInfo = {

@@ -39,7 +39,9 @@ class SetBreakpoints extends BaseCommand<SetBreakpointsResponse, SetBreakpointsA
             }
             else {
                 var breakpoint:Breakpoint = new BreakpointImpl(true, b.line, 0, source);
-                var cmd:String = cmd.addBreakpoint(args.source.name, args.source.path, b.line);
+                var name:String = args.source.name;
+                var path:String = context.fileNameToFullPathDict.get(name);
+                var cmd:String = cmd.addBreakpoint(name, path, b.line);
                 batch.add(cmd, onBreakpointAdded.bind(breakpoint, breakpoints));
             }
         }
@@ -62,8 +64,11 @@ class SetBreakpoints extends BaseCommand<SetBreakpointsResponse, SetBreakpointsA
         switch (info) {
             case Some(bInfo):
                 breakpoint.id = bInfo.id;
-                breakpoint.source.name = bInfo.fileName;
-                breakpoint.line = bInfo.line;
+                switch (bInfo.lineInfo) {
+                    case Some(line):
+                        breakpoint.line = line;
+                    default:
+                }
                 container.push(breakpoint);
             default:
                 this.context.sendError(response, 'AddBreakpoint FAILED: [ $lines ]');

@@ -79,8 +79,10 @@ class BaseAdapter extends adapter.DebugSession {
     }
 
     override function setBreakPointsRequest(response:SetBreakpointsResponse, args:SetBreakpointsArguments) {
-        var command = new vshaxeDebug.commands.SetBreakpoints(context, response, args);
-        command.execute();
+        constructFile2PathDictIfEmpty(function() {
+            var command = new vshaxeDebug.commands.SetBreakpoints(context, response, args);
+            command.execute();
+        });
     }
 
     override function configurationDoneRequest(response:ConfigurationDoneResponse, args:ConfigurationDoneArguments) {
@@ -99,8 +101,10 @@ class BaseAdapter extends adapter.DebugSession {
     }
 
     override function stackTraceRequest(response:StackTraceResponse, args:StackTraceArguments) {
-        var cmd = new vshaxeDebug.commands.StackTrace(context, response, args);
-        cmd.execute();
+        constructFile2PathDictIfEmpty(function() {
+            var command = new vshaxeDebug.commands.StackTrace(context, response, args);
+            command.execute();
+        });
     }
 
     override function scopesRequest(response:ScopesResponse, args:ScopesArguments) {
@@ -175,6 +179,25 @@ class BaseAdapter extends adapter.DebugSession {
             sendResponse(response);
             return true;
         });
+    }
+
+    function constructFile2PathDictIfEmpty(callback:Void -> Void) {
+        if (Lambda.count(context.fileNameToFullPathDict) == 0) {
+            debugger.queueSend(cmd.showFiles(),
+                function(lines) { 
+                    var result = processShowFilesResult(lines);
+                    callback();
+                    return result;
+                });
+        }
+    }
+
+    function processShowFilesResult(lines:Array<String>):Bool {
+        var sources:Array<SourceInfo> = parser.parseShowFiles(lines);
+        for (source in sources) {
+            context.fileNameToFullPathDict.set(source.name, source.path);
+        }
+        return true;
     }
 
     function onPromptGot(lines:Array<String>) {

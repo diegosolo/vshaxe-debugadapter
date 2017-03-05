@@ -1,4 +1,4 @@
-package fdbAdapter;
+package hxcppAdapter;
 
 import vshaxeDebug.Types;
 import protocol.debug.Types;
@@ -6,42 +6,50 @@ import haxe.ds.Option;
 
 class Parser implements vshaxeDebug.IParser {
 
-    var prompt:String;
-    var promptLength:Int;
     var eolSign:String;
+    var promptLength:Int;
 
     public function new(eolSign:String) {
-        prompt = "(fdb) ";
-        promptLength = prompt.length;
         this.eolSign = eolSign;
+        promptLength = 0;
     }
 
-    public function parseFunctionArguments(lines:Array<String>):Array<VariableItem>
+    public function parseFunctionArguments(lines:Array<String>):Array<VariableItem> {
+        throw "TODO: replace it";
         return parseVariables(lines);
+    }
 
-    public function parseGlobalVariables(lines:Array<String>):Array<VariableItem>
+    public function parseGlobalVariables(lines:Array<String>):Array<VariableItem> {
+        throw "TODO: replace it";
         return parseVariables(lines);
+    }
 
-    public function parseLocalVariables(lines:Array<String>):Array<VariableItem>
+    public function parseLocalVariables(lines:Array<String>):Array<VariableItem> {
+        throw "TODO: replace it";
         return parseVariables(lines);
+    }
 
     public function parseMembers(lines:Array<String>):Array<VariableItem> {
+        throw "TODO: replace it";
         lines.shift();
         return parseVariables(lines);
     }
 
     public function parseObjectProperties(lines:Array<String>):Array<VariableItem> {
+        throw "TODO: replace it";
         lines.shift();
         return parseVariables(lines);
     }
 
     public function parseEvaluate(lines:Array<String>):Option<VariableItem> {
+        throw "TODO: replace it";
         var variables:Array<VariableItem> = parseVariables(lines);
         trace(variables);
         return (variables.length > 0) ? Some(variables[0]) : None;
     }
 
     public function parseStackTrace(lines:Array<String>, pathProvider:String -> String):Array<StackFrame> {
+        throw "TODO: replace it";
         var result = [];
         var rMethod = ~/#([0-9]+)\s+this = \[Object [0-9]+, class='(.+)'\]\.(.+)\(.*\) at (.*):([0-9]+).*/;
         var anonFunction = ~/#([0-9]+)\s+this = \[Function [0-9]+, name='(.*)'\]\.([a-zA-Z0-9\/\$<>]+).*\) at (.*):([0-9]+).*/;
@@ -81,11 +89,11 @@ class Parser implements vshaxeDebug.IParser {
     public function parseAddBreakpoint(lines:Array<String>):Option<BreakpointInfo> {
         var result:Option<BreakpointInfo> = None;
         var breakpointData = lines[0];
-        var r = ~/Breakpoint ([0-9]+).*: file ([0-9A-Za-z\.]+), line ([0-9]+)/;
+        var r = ~/Breakpoint ([0-9]+) set and enabled(.*)/;
         if (r.match(breakpointData)) {
             result = Some({
                 id : Std.parseInt(r.matched(1)),
-                lineInfo : Some(Std.parseInt(r.matched(3)))
+                lineInfo : None
             });
         }
         return result;
@@ -93,12 +101,15 @@ class Parser implements vshaxeDebug.IParser {
 
     public function parseShowFiles(lines:Array<String>):Array<SourceInfo> {
         var result:Array<SourceInfo> = [];
-        var rRow = ~/^([0-9]+) (.+), ([a-zA-Z0-9:.]+)$/;
+        var rRow = ~/^(.)*\.hx$/;
         for (l in lines) {
             if (rRow.match(l)) {
+                var splited:Array<String> = l.split("/");
+                var name = splited.pop();
+                var path = l;
                 result.push({
-                    name : rRow.matched(3),
-                    path : rRow.matched(2)
+                    name : name,
+                    path : path
                 });
             }
         }
@@ -106,7 +117,7 @@ class Parser implements vshaxeDebug.IParser {
     }
 
     public function getLines(rawInput:String):Array<String> {
-        return rawInput.split(eolSign);
+        return [for (line in rawInput.split(eolSign)) if (line != "") line];
     }
 
     public function getLinesExceptPrompt(rawInput:String):Array<String> {
@@ -115,6 +126,7 @@ class Parser implements vshaxeDebug.IParser {
     }
 
     public function getTraces(rawInput:String):Array<String> {
+        throw "TODO: replace it";
         var result:Array<String> = [];
         var lines = getLines(rawInput);
         var traceR = ~/\[trace\](.*)/;
@@ -127,20 +139,31 @@ class Parser implements vshaxeDebug.IParser {
     }
 
     public function isPromptMatched(rawInput:String):Bool {
-        return (rawInput.substr(-promptLength) == prompt);
+        var promptR = ~/(\d+>)/;
+        if (promptR.match(rawInput)) {
+            var prompt:String = promptR.matched(1);
+            promptLength = prompt.length;
+        }
+        return (promptR.match(rawInput));
     }
 
     public function isExitMatched(rawInput:String):Bool {
+        throw "TODO: replace it";
         var exitR = ~/\[UnloadSWF\]/;
         return (exitR.match(rawInput));
     }
 
     public function isGreetingMatched(lines:Array<String>):Bool {
+        var greeting = "-=- hxcpp built-in debugger";
         var firstLine = lines[0];
-        return (firstLine != null) ? (firstLine.substr(0, 5) == "Adobe") : false;
+        var result = (firstLine != null) ? (firstLine.substr(0, greeting.length) == greeting) : false;
+        trace(result);
+        return result;
     }
 
     public function isStopOnBreakpointMatched(lines:Array<String>):Bool {
+        throw "TODO: replace it";
+        trace(lines);
         for (line in lines) {
             var r = ~/Breakpoint ([0-9]+),(.*) (.+).hx:([0-9]+)/;
             if (r.match(line)) {
@@ -151,6 +174,7 @@ class Parser implements vshaxeDebug.IParser {
     }
 
     public function isStopOnExceptionMatched(lines:Array<String>):Bool {
+        throw "TODO: replace it";
         for (line in lines) {
             var r = ~/^\[Fault\].*/;
             if (r.match(line)) {
@@ -161,6 +185,7 @@ class Parser implements vshaxeDebug.IParser {
     }
 
     function parseVariables(lines:Array<String>):Array<VariableItem> {
+        throw "TODO: replace it";
         var rVar = ~/^(.*) = (.*)$/;
         var result:Array<VariableItem> = [];
 
@@ -182,6 +207,7 @@ class Parser implements vshaxeDebug.IParser {
     }
 
     function detectExpressionType(expr:String):VariableType {
+        throw "TODO: replace it";
         var rObjectType = ~/^\[Object (\d+),/;
         var rIntType = ~/^\d+ \(0\x\d+\)/;
         var rFloatType = ~/^\d+\.\d+$/;
