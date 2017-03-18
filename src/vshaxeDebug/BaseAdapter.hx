@@ -184,11 +184,15 @@ class BaseAdapter extends adapter.DebugSession {
     function constructFile2PathDictIfEmpty(callback:Void -> Void) {
         if (Lambda.count(context.fileNameToFullPathDict) == 0) {
             debugger.queueSend(cmd.showFiles(),
-                function(lines) { 
+                function(lines):Bool { 
+                    trace(lines);
                     var result = processShowFilesResult(lines);
                     callback();
                     return result;
                 });
+        }
+        else {
+            callback();
         }
     }
 
