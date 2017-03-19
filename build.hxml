@@ -1,11 +1,11 @@
--cp vscode_debugadapter_haxe
+-cp vscode-debugadapter-extern
 -cp src
 -main fdbAdapter.Adapter
 -lib hxnodejs
 -js bin/fdb_adapter.js
 
 --next
--cp vscode_debugadapter_haxe
+-cp vscode-debugadapter-extern
 -cp src
 -main hxcppAdapter.Adapter
 -lib hxnodejs
@@ -15,7 +15,7 @@
 --next 
 -lib utest
 -main test.TestAll
--cp vscode_debugadapter_haxe
+-cp vscode-debugadapter-extern
 -cp .
 -js bin/test.js
 
