@@ -40,14 +40,14 @@ class SetBreakpoints extends BaseCommand<SetBreakpointsResponse, SetBreakpointsA
             else {
                 var breakpoint:Breakpoint = new BreakpointImpl(true, b.line, 0, source);
                 var name:String = args.source.name;
-                var path:String = context.fileNameToFullPathDict.get(name);
-                var cmd:String = cmd.addBreakpoint(name, path, b.line);
+                var path:String = context.pathProvider.forBreakpointSetting(name);
+                var cmd:String = cmd.addBreakpoint(path, b.line);
                 batch.add(cmd, onBreakpointAdded.bind(breakpoint, breakpoints));
             }
         }
 
         for (b in previouslySet) {
-            var cmd:String = cmd.removeBreakpoint(b.source.name, b.source.path, b.line);
+            var cmd:String = cmd.removeBreakpoint(b.source.name, b.line);
             batch.add(cmd, onBreakpointRemoved.bind(b, breakpoints));
         }
 

@@ -37,7 +37,6 @@ class Parser implements vshaxeDebug.IParser {
 
     public function parseEvaluate(lines:Array<String>):Option<VariableItem> {
         var variables:Array<VariableItem> = parseVariables(lines);
-        trace(variables);
         return (variables.length > 0) ? Some(variables[0]) : None;
     }
 
@@ -91,22 +90,8 @@ class Parser implements vshaxeDebug.IParser {
         return result;
     }
 
-    public function parseShowFiles(lines:Array<String>):Array<SourceInfo> {
-        var result:Array<SourceInfo> = [];
-        var rRow = ~/^([0-9]+) (.+), ([a-zA-Z0-9:.]+)$/;
-        for (l in lines) {
-            if (rRow.match(l)) {
-                result.push({
-                    name : rRow.matched(3),
-                    path : rRow.matched(2)
-                });
-            }
-        }
-        return result;
-    }
-
     public function getLines(rawInput:String):Array<String> {
-        return rawInput.split(eolSign);
+        return [for (line in rawInput.split(eolSign)) if (line != "") line];
     }
 
     public function getLinesExceptPrompt(rawInput:String):Array<String> {
@@ -140,7 +125,8 @@ class Parser implements vshaxeDebug.IParser {
         return (firstLine != null) ? (firstLine.substr(0, 5) == "Adobe") : false;
     }
 
-    public function isStopOnBreakpointMatched(lines:Array<String>):Bool {
+    public function isStopOnBreakpointMatched(rawInput:String):Bool {
+        var lines = getLines(rawInput);
         for (line in lines) {
             var r = ~/Breakpoint ([0-9]+),(.*) (.+).hx:([0-9]+)/;
             if (r.match(line)) {
@@ -150,7 +136,8 @@ class Parser implements vshaxeDebug.IParser {
         return false;
     }
 
-    public function isStopOnExceptionMatched(lines:Array<String>):Bool {
+    public function isStopOnExceptionMatched(rawInput:String):Bool {
+        var lines = getLines(rawInput);
         for (line in lines) {
             var r = ~/^\[Fault\].*/;
             if (r.match(line)) {

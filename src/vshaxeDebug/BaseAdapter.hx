@@ -79,7 +79,7 @@ class BaseAdapter extends adapter.DebugSession {
     }
 
     override function setBreakPointsRequest(response:SetBreakpointsResponse, args:SetBreakpointsArguments) {
-        constructFile2PathDictIfEmpty(function() {
+        context.pathProvider.initWait(function() {
             var command = new vshaxeDebug.commands.SetBreakpoints(context, response, args);
             command.execute();
         });
@@ -101,7 +101,7 @@ class BaseAdapter extends adapter.DebugSession {
     }
 
     override function stackTraceRequest(response:StackTraceResponse, args:StackTraceArguments) {
-        constructFile2PathDictIfEmpty(function() {
+        context.pathProvider.initWait(function() {
             var command = new vshaxeDebug.commands.StackTrace(context, response, args);
             command.execute();
         });
@@ -179,72 +179,6 @@ class BaseAdapter extends adapter.DebugSession {
             sendResponse(response);
             return true;
         });
-    }
-
-    function constructFile2PathDictIfEmpty(callback:Void -> Void) {
-        if (Lambda.count(context.fileNameToFullPathDict) == 0) {
-            debugger.queueSend(cmd.showFiles(),
-                function(lines):Bool { 
-                    trace(lines);
-                    var result = processShowFilesResult(lines);
-                    callback();
-                    return result;
-                });
-        }
-        else {
-            callback();
-        }
-    }
-
-    function processShowFilesResult(lines:Array<String>):Bool {
-        var sources:Array<SourceInfo> = parser.parseShowFiles(lines);
-        for (source in sources) {
-            context.fileNameToFullPathDict.set(source.name, source.path);
-        }
-        return true;
-    }
-
-    function onPromptGot(lines:Array<String>) {
-        switch (context.debuggerState) {
-            case EDebuggerState.WaitingGreeting:
-                if (parser.isGreetingMatched(lines)) {
-                    context.onEvent(GreetingReceived);
-                }
-                else
-                    trace('Start FAILED: [$lines]');
-
-            case EDebuggerState.Running:
-                if (parser.isStopOnBreakpointMatched(lines)) {
-                    context.onEvent(Stop(StopReason.breakpoint));
-                }
-                else if (parser.isStopOnExceptionMatched(lines)) {
-                    context.onEvent(Stop(StopReason.exception));
-                }
-            case _:
-        }
-    }
-
-    function allOutputReceiver(string:String):Bool {
-        var proceed:Bool = false;
-        if (parser.isExitMatched(string)) {
-            var event = new TerminatedEvent(false);
-            traceJson(event);
-            sendEvent(event);
-            terminated = true;
-            debugger.stop();
-            return true;
-        }
-
-        switch (context.debuggerState) {
-            case EDebuggerState.Running:
-                var lines:Array<String> = parser.getTraces(string);
-                for (line in lines) {
-                    context.sendToOutput(line);
-                    proceed = true;
-                }
-            default:
-        }
-        return proceed;
     }
 
     function traceJson<T>(value:T) {

@@ -11,14 +11,13 @@ interface ICommandBuilder {
     function continueCommand():String;
     function pause():String;
     function stackTrace():String;
-    function addBreakpoint(fileName:String, filePath:String, line:Int):String;
-    function removeBreakpoint(fileName:String, filePath:String, line:Int):String;
+    function addBreakpoint(path:String, line:Int):String;
+    function removeBreakpoint(path:String, line:Int):String;
     function printLocalVariables():String;
     function printFunctionArguments():String;
     function printGlobalVariables():String;
     function printObjectProperties(?objectName:String):String;
     function printMembers():String;
     function evaluate(expr:String):String;
-    function showFiles():String;
     function disconnect():String;
 }

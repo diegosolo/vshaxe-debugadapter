@@ -8,6 +8,7 @@ import vshaxeDebug.ICommandBuilder;
 import vshaxeDebug.IParser;
 import vshaxeDebug.PlatformParameters;
 import vshaxeDebug.commands.BaseCommand;
+import vshaxeDebug.EDebuggerState;
 import protocol.debug.Types;
 import adapter.DebugSession;
 import js.node.Fs;
@@ -68,6 +69,52 @@ class Adapter extends BaseAdapter {
 
         debugger = new CLIAdapter(cliAdapterConfig);
         debugger.start();
-        return new Context(this, debugger);
+        return new Context(this, debugger, new PathProvider(debugger));
+    }
+
+    function onPromptGot(lines:Array<String>) {
+        switch (context.debuggerState) {
+            case EDebuggerState.WaitingGreeting:
+                if (parser.isGreetingMatched(lines)) {
+                    context.pathProvider.init();
+                    context.onEvent(GreetingReceived);
+                }
+                else
+                    trace('Start FAILED: [$lines]');
+            case _:
+        }
+    }
+
+    function allOutputReceiver(rawInput:String):Bool {
+        var proceed:Bool = false;
+        if (parser.isExitMatched(rawInput)) {
+            var event = new TerminatedEvent(false);
+            traceJson(event);
+            sendEvent(event);
+            terminated = true;
+            debugger.stop();
+            return true;
+        }
+
+        switch (context.debuggerState) {
+            case EDebuggerState.Running:
+                if (parser.isStopOnBreakpointMatched(rawInput)) {
+                    context.onEvent(Stop(StopReason.breakpoint));
+                    proceed = true;
+                }
+                else if (parser.isStopOnExceptionMatched(rawInput)) {
+                    context.onEvent(Stop(StopReason.exception));
+                    proceed = true;
+                }
+                else {
+                    var lines:Array<String> = parser.getTraces(rawInput);
+                    for (line in lines) {
+                        context.sendToOutput(line);
+                        proceed = true;
+                    }
+                }
+            default:
+        }
+        return proceed;
     }
 }

@@ -20,6 +20,6 @@ class StackTrace extends BaseCommand<StackTraceResponse, StackTraceArguments> {
     }
 
     function pathProvider(fileName:String):String {
-        return context.fileNameToFullPathDict.get(fileName);
+        return context.pathProvider.forEditor(fileName);
     }
 }

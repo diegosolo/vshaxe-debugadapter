@@ -15,52 +15,60 @@ class Parser implements vshaxeDebug.IParser {
     }
 
     public function parseFunctionArguments(lines:Array<String>):Array<VariableItem> {
-        throw "TODO: replace it";
-        return parseVariables(lines);
+        return [];
     }
 
     public function parseGlobalVariables(lines:Array<String>):Array<VariableItem> {
-        throw "TODO: replace it";
-        return parseVariables(lines);
+        return [];
     }
 
     public function parseLocalVariables(lines:Array<String>):Array<VariableItem> {
-        throw "TODO: replace it";
         return parseVariables(lines);
     }
 
     public function parseMembers(lines:Array<String>):Array<VariableItem> {
-        throw "TODO: replace it";
-        lines.shift();
         return parseVariables(lines);
     }
 
     public function parseObjectProperties(lines:Array<String>):Array<VariableItem> {
-        throw "TODO: replace it";
-        lines.shift();
         return parseVariables(lines);
     }
 
     public function parseEvaluate(lines:Array<String>):Option<VariableItem> {
-        throw "TODO: replace it";
         var variables:Array<VariableItem> = parseVariables(lines);
-        trace(variables);
         return (variables.length > 0) ? Some(variables[0]) : None;
     }
 
     public function parseStackTrace(lines:Array<String>, pathProvider:String -> String):Array<StackFrame> {
-        throw "TODO: replace it";
         var result = [];
-        var rMethod = ~/#([0-9]+)\s+this = \[Object [0-9]+, class='(.+)'\]\.(.+)\(.*\) at (.*):([0-9]+).*/;
+        var rMethod = ~/([0-9]+) : (.+) at (.*):([0-9]+).*/;
         var anonFunction = ~/#([0-9]+)\s+this = \[Function [0-9]+, name='(.*)'\]\.([a-zA-Z0-9\/\$<>]+).*\) at (.*):([0-9]+).*/;
-        var globalCall = ~/#([0-9]+)\s+(.*)\(\) at (.*):([0-9]+)/;
+        var globalCall = ~/([0-9]+) : (.+) at \?:([0-9]+).*/;
+
+        /*"Thread 0 (stopped in breakpoint 1):,
+        *     2 : somePack.WeirdThings.new() at somePack/WeirdThings.hx:6,
+              1 : Test.main() at Test.hx:13,
+              0 : hxcpp.__hxcpp_main() at ?:1";
+        */
         for (l in lines) {
-            if (rMethod.match(l)) {
+            if (globalCall.match(l)) {
+                result.push({
+                    id : Std.parseInt(globalCall.matched(1)),
+                    name : globalCall.matched(2),
+                    line : Std.parseInt(globalCall.matched(3)),
+                    source : { path : "global", name: "global"},
+                    column : 0
+                });
+            }
+            else if (rMethod.match(l)) {
+                var path:String =  rMethod.matched(3);
+                var splited:Array<String> = path.split("/");
+                var name = splited.pop();
                 result.push({
                     id : Std.parseInt(rMethod.matched(1)),
-                    name : rMethod.matched(2) + "." + rMethod.matched(3),
-                    line : Std.parseInt( rMethod.matched(5)),
-                    source : { name : rMethod.matched(4), path : pathProvider(rMethod.matched(4))},
+                    name : rMethod.matched(2),
+                    line : Std.parseInt(rMethod.matched(4)),
+                    source : {name : name, path : pathProvider(name)},
                     column : 0
                 });
             }
@@ -70,15 +78,6 @@ class Parser implements vshaxeDebug.IParser {
                     name : anonFunction.matched(2) + "." + anonFunction.matched(3),
                     line : Std.parseInt( anonFunction.matched(5)),
                     source : { name : anonFunction.matched(4), path : pathProvider(anonFunction.matched(4))},
-                    column : 0
-                });
-            }
-            else if (globalCall.match(l)) {
-                result.push({
-                    id : Std.parseInt(globalCall.matched(1)),
-                    name : globalCall.matched(2),
-                    line : Std.parseInt( globalCall.matched(4)),
-                    source : { path : "global", name: "global"},
                     column : 0
                 });
             }
@@ -99,34 +98,19 @@ class Parser implements vshaxeDebug.IParser {
         return result;
     }
 
-    public function parseShowFiles(lines:Array<String>):Array<SourceInfo> {
-        var result:Array<SourceInfo> = [];
-        var rRow = ~/^(.)*\.hx$/;
-        for (l in lines) {
-            if (rRow.match(l)) {
-                var splited:Array<String> = l.split("/");
-                var name = splited.pop();
-                var path = l;
-                result.push({
-                    name : name,
-                    path : path
-                });
-            }
-        }
-        return result;
-    }
-
     public function getLines(rawInput:String):Array<String> {
         return [for (line in rawInput.split(eolSign)) if (line != "") line];
     }
 
     public function getLinesExceptPrompt(rawInput:String):Array<String> {
         var withoutPrompt:String = rawInput.substring(0, rawInput.length - promptLength);
-        return getLines(withoutPrompt);
+        var lines = getLines(withoutPrompt);
+        return lines;
     }
 
     public function getTraces(rawInput:String):Array<String> {
-        throw "TODO: replace it";
+        trace('getTraces: TODO: replace it');
+        trace(rawInput);
         var result:Array<String> = [];
         var lines = getLines(rawInput);
         var traceR = ~/\[trace\](.*)/;
@@ -139,53 +123,44 @@ class Parser implements vshaxeDebug.IParser {
     }
 
     public function isPromptMatched(rawInput:String):Bool {
-        var promptR = ~/(\d+>)/;
+        var promptR = ~/(\d+> )$/;
+        var result = false;
         if (promptR.match(rawInput)) {
             var prompt:String = promptR.matched(1);
             promptLength = prompt.length;
+            result = true;
         }
-        return (promptR.match(rawInput));
+        return result;
     }
 
     public function isExitMatched(rawInput:String):Bool {
-        throw "TODO: replace it";
-        var exitR = ~/\[UnloadSWF\]/;
-        return (exitR.match(rawInput));
+       return false;
     }
 
     public function isGreetingMatched(lines:Array<String>):Bool {
         var greeting = "-=- hxcpp built-in debugger";
         var firstLine = lines[0];
         var result = (firstLine != null) ? (firstLine.substr(0, greeting.length) == greeting) : false;
-        trace(result);
         return result;
     }
 
-    public function isStopOnBreakpointMatched(lines:Array<String>):Bool {
-        throw "TODO: replace it";
-        trace(lines);
+    public function isStopOnBreakpointMatched(rawInput:String):Bool {
+        var lines = getLines(rawInput);
+        var regexp = ~/Thread (\d+) stopped in (.*) at .*\/(\S+\.hx):(\d+)\./;
         for (line in lines) {
-            var r = ~/Breakpoint ([0-9]+),(.*) (.+).hx:([0-9]+)/;
-            if (r.match(line)) {
+            if (regexp.match(line)) {
                 return true;
             }
         }
         return false;
     }
 
-    public function isStopOnExceptionMatched(lines:Array<String>):Bool {
-        throw "TODO: replace it";
-        for (line in lines) {
-            var r = ~/^\[Fault\].*/;
-            if (r.match(line)) {
-                return true;
-            }
-        }
+    public function isStopOnExceptionMatched(rawInput:String):Bool {
+        var lines = getLines(rawInput);
         return false;
     }
 
     function parseVariables(lines:Array<String>):Array<VariableItem> {
-        throw "TODO: replace it";
         var rVar = ~/^(.*) = (.*)$/;
         var result:Array<VariableItem> = [];
 
@@ -207,7 +182,6 @@ class Parser implements vshaxeDebug.IParser {
     }
 
     function detectExpressionType(expr:String):VariableType {
-        throw "TODO: replace it";
         var rObjectType = ~/^\[Object (\d+),/;
         var rIntType = ~/^\d+ \(0\x\d+\)/;
         var rFloatType = ~/^\d+\.\d+$/;
@@ -218,15 +192,20 @@ class Parser implements vshaxeDebug.IParser {
             var objectId = Std.parseInt(rObjectType.matched(1));
             Object(objectId);
         }
-        else if (rIntType.match(expr))
+        else if (rIntType.match(expr)) {
             Simple("Int");
-        else if (rFloatType.match(expr))
+        } 
+        else if (rFloatType.match(expr)) {
             Simple("Float");
-        else if (rStringType.match(expr))
+        }
+        else if (rStringType.match(expr)) {
             Simple("String");
-        else if (rBoolType.match(expr))
+        }
+        else if (rBoolType.match(expr)) {
             Simple("Bool");
-        else
+        }
+        else {
             Simple("Unknown");
+        }
     }
 }

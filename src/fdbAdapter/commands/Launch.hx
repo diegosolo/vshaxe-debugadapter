@@ -24,15 +24,15 @@ class Launch extends BaseCommand<LaunchResponse, ExtLaunchRequestArguments> {
             return;
         }
         debugger.queueSend(cmd.launch(program), processResult);
+        context.pathProvider.init();
         context.sendToOutput('running $program', OutputEventCategory.stdout);
     }
 
     function processResult(lines:Array<String>):Bool {
         var matchingOutputLine = lines[lines.length - 1];
-        trace( 'Launch: $lines');
         for (line in lines) {
             if (matchSWFConnected(line)) {
-                context.protocol.sendResponse( response );
+                context.protocol.sendResponse(response);
                 context.sendToOutput("launch success", OutputEventCategory.stdout);
                 return true;
             }

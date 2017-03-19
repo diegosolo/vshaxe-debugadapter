@@ -10,6 +10,7 @@ class Attach extends BaseCommand<LaunchResponse, ExtLaunchRequestArguments> {
         debugger.queueSend("run", function(_):Bool {
             return true;
         });
+        context.pathProvider.init();
         context.sendToOutput("waiting..", OutputEventCategory.stdout);
     }
 }

@@ -17,7 +17,7 @@ class CommandBuilder implements vshaxeDebug.ICommandBuilder {
         return "step";
 
     public function stepOut():String 
-        return "TODO";
+        return "finish";
 
     public function next():String 
         return "next";
@@ -29,35 +29,32 @@ class CommandBuilder implements vshaxeDebug.ICommandBuilder {
         return "\ny";
 
     public function stackTrace():String 
-        return "bt";
+        return "w";
 
-    public function addBreakpoint(fileName:String, filePath:String, line:Int):String
-        return 'break $filePath:${line}';
+    public function addBreakpoint(path:String, line:Int):String
+        return 'break $path:${line}';
     
-    public function removeBreakpoint(fileName:String, filePath:String, line:Int):String
-        return 'clear $filePath:${line}';
+    public function removeBreakpoint(path:String, line:Int):String
+        return 'clear $path:${line}';
 
     public function printLocalVariables():String 
-        return "TODO";
+        return "variables";
 
     public function printFunctionArguments():String 
-        return "TODO";
+        return "";
 
     public function printGlobalVariables():String 
-        return "TODO";
+        return "";
 
     public function printObjectProperties(?objectName:String):String 
-        return 'print $objectName.';
+        return 'print $objectName';
 
     public function printMembers():String 
-        return "print this.";
-
-    public function showFiles():String
-        return "files";
+        return "print this";
 
     public function evaluate(expr:String):String
         return 'print $expr';
 
     public function disconnect():String
-        return "kill\ny\nquit";
+        return "exit";
 }

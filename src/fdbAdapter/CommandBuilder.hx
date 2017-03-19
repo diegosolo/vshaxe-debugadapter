@@ -31,11 +31,11 @@ class CommandBuilder implements vshaxeDebug.ICommandBuilder {
     public function stackTrace():String 
         return "bt";
 
-    public function addBreakpoint(fileName:String, filePath:String, line:Int):String
-        return 'break $fileName:${line}';
+    public function addBreakpoint(path:String, line:Int):String
+        return 'break $path:${line}';
     
-    public function removeBreakpoint(fileName:String, filePath:String, line:Int):String
-        return 'clear $fileName:${line}';
+    public function removeBreakpoint(path:String, line:Int):String
+        return 'clear $path:${line}';
 
     public function printLocalVariables():String 
         return "info locals";
@@ -51,9 +51,6 @@ class CommandBuilder implements vshaxeDebug.ICommandBuilder {
 
     public function printMembers():String 
         return "print this.";
-
-    public function showFiles():String
-        return "show files";
 
     public function evaluate(expr:String):String
         return 'print $expr';

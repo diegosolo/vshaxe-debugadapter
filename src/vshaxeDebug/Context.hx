@@ -7,28 +7,30 @@ import protocol.debug.Types.Breakpoint;
 import protocol.debug.Types.OutputEventCategory;
 import vshaxeDebug.EDebuggerState.StateController;
 import vshaxeDebug.EDebuggerState.EStateControlEvent;
+import vshaxeDebug.Types;
+import vshaxeDebug.IPathProvider;
 import adapter.DebugSession.OutputEvent as OutputEventImpl;
 
 class Context {
-    
+
     public var variableHandles(default, null):Handles<String>;
     public var knownObjects(default, null):Map<Int, String>;
     public var sourcePath(default, default):String;
-    public var fileNameToFullPathDict(default, default):Map<String, String>;
     public var breakpoints(default, null):Map<String, Array<Breakpoint>>;
     public var debugger(default, null):IDebugger;
     public var protocol(default, null):ProtocolServer;
     public var debuggerState(default, null):EDebuggerState;
-    
-    public function new(protocol:ProtocolServer, debugger:IDebugger) {
+    public var pathProvider(default, null):IPathProvider;
+
+    public function new(protocol:ProtocolServer, debugger:IDebugger, pathProvider:IPathProvider) {
         this.protocol = protocol;
         this.debugger = debugger;
+        this.pathProvider = pathProvider;
 
         debuggerState = WaitingGreeting;
         breakpoints = new Map<String, Array<Breakpoint>>();
-        fileNameToFullPathDict = new Map<String, String>();
         variableHandles = new Handles<String>();
-        knownObjects = new Map<Int,String>();
+        knownObjects = new Map<Int, String>();
     }
 
     public function onEvent(event:EStateControlEvent) {

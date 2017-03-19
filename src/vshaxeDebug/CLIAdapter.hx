@@ -87,6 +87,7 @@ class CLIAdapter implements IDebugger {
     }
 
     public function queueSend(command:String, ?callback:Array<String> -> Bool) {
+        trace('queueSend: $command');
         var cmd = new DebuggerCommand(command, callback);
         queueCommand(cmd);
     }
@@ -149,12 +150,11 @@ class CLIAdapter implements IDebugger {
 
     function onData(buf:Buffer) {
         var newLength = buffer.length + buf.length;
-        buffer = Buffer.concat([buffer,buf], newLength);
+        buffer = Buffer.concat([buffer, buf], newLength);
         var rawInput:String = buffer.toString();
         if (parser.isPromptMatched(rawInput)) {
-            var lines = parser.getLinesExceptPrompt(rawInput);
-            lines.pop();
             buffer = new Buffer(0);
+            var lines = parser.getLinesExceptPrompt(rawInput);
             if (currentCommand != null) {
                 currentCommand.processResult(lines);
                 if (currentCommand.done) {
@@ -163,10 +163,8 @@ class CLIAdapter implements IDebugger {
             }
             onPromptGot(lines);
         }
-        else {
-            if (allOutputReceiver(rawInput)) {
-                buffer = new Buffer(0);
-            }
+        if (allOutputReceiver(rawInput)) {
+            buffer = new Buffer(0);
         }
     }
 }

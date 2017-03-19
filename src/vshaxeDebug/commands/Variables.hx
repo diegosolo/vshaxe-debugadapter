@@ -30,9 +30,11 @@ class Variables extends BaseCommand<VariablesResponse, VariablesArguments> {
         switch (scope) {
             case Locals(frameId, _):
                 batch.add(cmd.printLocalVariables(), processResult.bind(parser.parseLocalVariables));
-                batch.add(cmd.printFunctionArguments(), processResult.bind(parser.parseFunctionArguments));
+                if (cmd.printFunctionArguments() != "")
+                    batch.add(cmd.printFunctionArguments(), processResult.bind(parser.parseFunctionArguments));
             case Global(frameId):
-                batch.add(cmd.printGlobalVariables(), processResult.bind(parser.parseGlobalVariables));
+                if (cmd.printGlobalVariables() != "")
+                    batch.add(cmd.printGlobalVariables(), processResult.bind(parser.parseGlobalVariables));
             case Closure(fameId):
                 batch.add(cmd.printMembers(), processResult.bind(parser.parseMembers));
             case ObjectDetails(_, name):

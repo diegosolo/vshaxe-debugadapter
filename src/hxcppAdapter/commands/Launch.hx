@@ -23,12 +23,6 @@ class Launch extends BaseCommand<LaunchResponse, ExtLaunchRequestArguments> {
             context.protocol.sendResponse(response);
             return;
         }
-        debugger.queueSend(cmd.launch(program), processResult);
         context.sendToOutput('running $program', OutputEventCategory.stdout);
-    }
-
-    function processResult(lines:Array<String>):Bool {
-        context.sendToOutput("launch success", OutputEventCategory.stdout);
-        return true;
     }
 }
